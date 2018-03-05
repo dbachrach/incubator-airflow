@@ -3972,6 +3972,62 @@ class DAG(BaseDag, LoggingMixin):
         return run
 
     @provide_session
+    def create_dagrun_bulk(self,
+                           run_id,
+                           times,
+                           state,
+                           execution_date=None,
+                           start_date=None,
+                           external_trigger=False,
+                           conf=None,
+                           session=None):
+        """
+        Creates a dag run from this dag including the tasks associated with this dag.
+        Returns the dag run.
+
+        :param run_id: defines the the run id for this dag run
+        :type run_id: string
+        :param execution_date: the execution date of this dag run
+        :type execution_date: datetime
+        :param state: the state of the dag run
+        :type state: State
+        :param start_date: the date this dag run should be evaluated
+        :type start_date: datetime
+        :param external_trigger: whether this dag run is externally triggered
+        :type external_trigger: bool
+        :param session: database session
+        :type session: Session
+        """
+        runs = []
+        for i in xrange(0, times):
+            run = DagRun(
+                dag_id=self.dag_id,
+                run_id=f'{run_id}-{i}',
+                execution_date=execution_date,
+                start_date=start_date,
+                external_trigger=external_trigger,
+                conf=conf,
+                state=state
+            )
+            session.add(run)
+            runs.append(run)
+
+        DagStat.set_dirty(dag_id=self.dag_id, session=session)
+
+        session.commit()
+
+        for run in runs:
+            run.dag = self
+
+            # create the associated task instances
+            # state is None at the moment of creation
+            run.verify_integrity(session=session)
+
+            run.refresh_from_db()
+
+        return runs
+
+    @provide_session
     def sync_to_db(self, owner=None, sync_time=None, session=None):
         """
         Save attributes about this DAG to the DB. Note that this method

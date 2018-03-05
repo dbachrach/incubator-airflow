@@ -32,6 +32,17 @@ class Client(object):
         """
         raise NotImplementedError()
 
+    def trigger_dags(self, dag_id, run_id=None, conf=None, execution_date=None, times=1):
+        """Create a dag run for the specified dag.
+
+        :param dag_id:
+        :param run_id:
+        :param conf:
+        :param execution_date:
+        :return:
+        """
+        raise NotImplementedError()
+
     def delete_dag(self, dag_id):
         """Delete all DB records related to the specified dag.
 

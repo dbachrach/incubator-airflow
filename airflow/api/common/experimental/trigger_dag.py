@@ -57,3 +57,42 @@ def trigger_dag(dag_id, run_id=None, conf=None, execution_date=None):
     )
 
     return trigger
+
+def trigger_dags(dag_id, run_id=None, conf=None, execution_date=None, times=1):
+    dagbag = DagBag()
+
+    if dag_id not in dagbag.dags:
+        raise AirflowException("Dag id {} not found".format(dag_id))
+
+    dag = dagbag.get_dag(dag_id)
+
+    if not execution_date:
+        execution_date = timezone.utcnow()
+
+    assert timezone.is_localized(execution_date)
+    execution_date = execution_date.replace(microsecond=0)
+
+    if not run_id:
+        run_id = "manual__{0}".format(execution_date.isoformat())
+
+    dr = DagRun.find(dag_id=dag_id, run_id=run_id)
+    if dr:
+        raise AirflowException("Run id {} already exists for dag id {}".format(
+            run_id,
+            dag_id
+        ))
+
+    run_conf = None
+    if conf:
+        run_conf = json.loads(conf)
+
+    trigger = dag.create_dagruns(
+        run_id=run_id,
+        execution_date=execution_date,
+        state=State.RUNNING,
+        conf=run_conf,
+        external_trigger=True,
+        times=times
+    )
+
+    return trigger

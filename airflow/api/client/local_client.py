@@ -28,6 +28,14 @@ class Client(api_client.Client):
                                      execution_date=execution_date)
         return "Created {}".format(dr)
 
+    def trigger_dag(self, dag_id, run_id=None, conf=None, execution_date=None, times=1):
+        dr = trigger_dag.trigger_dags(dag_id=dag_id,
+                                     run_id=run_id,
+                                     conf=conf,
+                                     execution_date=execution_date,
+                                     times=times)
+        return "Created {}".format(dr)
+
     def delete_dag(self, dag_id):
         count = delete_dag.delete_dag(dag_id)
         return "Removed {} record(s)".format(count)

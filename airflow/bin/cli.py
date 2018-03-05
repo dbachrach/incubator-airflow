@@ -203,6 +203,23 @@ def trigger_dag(args):
         raise AirflowException(err)
     log.info(message)
 
+def trigger_dags(args):
+    """
+    Creates a dag run for the specified dag
+    :param args:
+    :return:
+    """
+    log = LoggingMixin().log
+    try:
+        message = api_client.trigger_dags(dag_id=args.dag_id,
+                                          times=args.times,
+                                          run_id=args.run_id,
+                                          conf=args.conf,
+                                          execution_date=args.exec_date)
+    except IOError as err:
+        log.error(err)
+        raise AirflowException(err)
+    log.info(message)
 
 def delete_dag(args):
     """
@@ -1248,6 +1265,8 @@ class CLIFactory(object):
             "Search dag_id as regex instead of exact string", "store_true"),
         # trigger_dag
         'run_id': Arg(("-r", "--run_id"), "Helps to identify this run"),
+        # trigger_dags
+        'times': Arg(("-ti", "--times"), "How many dags to trigger"),
         'conf': Arg(
             ('-c', '--conf'),
             "JSON string that gets pickled into the DagRun's conf attribute"),
@@ -1535,6 +1554,10 @@ class CLIFactory(object):
             'func': trigger_dag,
             'help': "Trigger a DAG run",
             'args': ('dag_id', 'subdir', 'run_id', 'conf', 'exec_date'),
+        }, {
+            'func': trigger_dags,
+            'help': "Trigger multiple DAG runs",
+            'args': ('dag_id', 'subdir', 'run_id', 'conf', 'exec_date', 'times'),
         }, {
             'func': delete_dag,
             'help': "Delete all DB records related to the specified DAG",
