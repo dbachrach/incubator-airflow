@@ -28,7 +28,7 @@ class Client(api_client.Client):
                                      execution_date=execution_date)
         return "Created {}".format(dr)
 
-    def trigger_dag(self, dag_id, run_id=None, conf=None, execution_date=None, times=1):
+    def trigger_dags(self, dag_id, run_id=None, conf=None, execution_date=None, times=1):
         dr = trigger_dag.trigger_dags(dag_id=dag_id,
                                      run_id=run_id,
                                      conf=conf,
